@@ -1,15 +1,16 @@
 from scraping.scrap_data import scrape_tables
-from sqlalchemy import create_engine,text
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
 import pandas as pd
-# create database engine
-engine=create_engine(f"postgresql://user:root@localhost:5432/test_db")
+
+# Create database engine
+engine = create_engine(f"postgresql://user:root@postgres:5432/test_db")
+
 
 # Define the XPATH for the Championship table
-
 championship_xpath = '/html/body/div[4]/div[6]/div[3]/div[4]/table'
 
 # URLs to scrape
@@ -43,52 +44,56 @@ tables_names = [
     'Miscellaneous_Stats'
 ]
 
-# delte existance tables
 with engine.begin() as conn:
     for tbl in tables_names:
-        table_name=f'stg_{tbl}'
-        conn.execute(text(f'DROP TABLE IF EXISTS "puplic"."{table_name}";'))
+        table_name=f"stg_{tbl}"
+        conn.execute(text(f'DROP TABLE IF EXISTS "public"."{table_name}";'))
     print("Dropped all staging tables.")
 
-# scrap data
-for name ,url in urls.items:
+# scrap and explore data
+
+for name,url in urls.items():
     if name=='Liverpool':
-        tables=scrape_tables(url,club=name,slepp_time=10)
+        tables=scrape_tables(url,club=name,sleep_time=10)
+    
         if tables:
-            print('-'*30)
+            print('-'*20)
             print(len(tables),end=' ')
             print('tables_found')
             for i,table in enumerate(tables[0:12]):
                 # get the table name
                 print(i)
-                table_name=f"stg_{tables_names[i]}"
-                #  flatten the table if it is a DataFrame
-                if isinstance(table.columns,pd.MultiIndex):
+                table_name = f"stg_{tables_names[i]}"
+                # flatten the table if it is a DataFrame
+                if isinstance(table.columns, pd.MultiIndex):
                     table.columns=['_'.join([str(i) for i in col]) for col in table.columns]
-                table.to_sql(table_name,engine,schema='puplic',if_exists='replace',index=False)
-                print('-'*30)
+                table.to_sql(table_name, engine, schema="public", if_exists='replace', index=False)
+
+                print("-"*20)
                 print(f"Table {i+1} ({table_name}) inserted successfully.")
+
     else:
         table_name=f"stg_{name}"
-        table=scrape_tables(url=url,club=name,xpath=championship_xpath)
-        print('-'*30)
-        # check if the table is empty
-        if table is None or not hasattr(table,'empty'):
+        table = scrape_tables(url=url, club=name, xpath=championship_xpath)
+        # Check if the table is empty
+        if  table is None or not hasattr(table, "empty") or table.empty:
+            print("-" * 20)
             print(f"❌ No tables found for {name}")
             continue
+
+        print("-" * 20)
         print(f"Found the table for the Championship's players \"{name}\" data")
 
         # flatten the table if it is a DataFrame
         if isinstance(table.columns,pd.MultiIndex):
-            table.columns=['_'.join([str(i) for i in col]) for col in table.columns]
-        
+            table.columns = ['_'.join([str(i) for i in col]) for col in table.columns]
+
         # Store the table in the database
         table.to_sql(table_name, engine, schema="public", if_exists='replace', index=False)
 
         print(f"✅ Loaded Championship's players \"{name}\" data into \"{table_name}\"")
+
+
 # Finish the scraping process
 print("-" * 20)
 print("🏁 Data exploration and loading completed.")
-
-
-

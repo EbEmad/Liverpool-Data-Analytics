@@ -1,17 +1,29 @@
 FROM python:3.9-slim
 
 # Set environment variables
- # to prevent .py files from being written to disk
 ENV PYTHONDONTWRITEBYTECODE=1
-# to ensure that the output of Python is sent straight to the terminal
 ENV PYTHONUNBUFFERED=1
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMIUM_DRIVER=/usr/lib/chromium-browser/chromedriver
 
-# Set the working directory
-WORKDIR /app
 
-COPY requirements.txt /app/
-# Install dependencies
+
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY ./src /app/
-CMD [ "python","./src/scrap.py" ]
 
+RUN apt-get update && apt-get install -y wget unzip && \
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt install -y ./google-chrome-stable_current_amd64.deb && \
+    rm google-chrome-stable_current_amd64.deb && \
+    apt-get clean
+
+
+# Upgrade webdriver-manager to latest version
+RUN pip install --upgrade webdriver-manager selenium
+
+# Copy application code
+COPY src/ ./src
+COPY test.py test.py
+
+CMD ["python", "src/scrap.py"]
