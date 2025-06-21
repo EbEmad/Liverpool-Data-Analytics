@@ -1,0 +1,94 @@
+from scraping.scrap_data import scrape_tables
+from sqlalchemy import create_engine,text
+from dotenv import load_dotenv
+import os
+import sys
+from pathlib import Path
+import pandas as pd
+# create database engine
+engine=create_engine(f"postgresql://user:root@localhost:5432/test_db")
+
+# Define the XPATH for the Championship table
+
+championship_xpath = '/html/body/div[4]/div[6]/div[3]/div[4]/table'
+
+# URLs to scrape
+urls = {
+    "Standard_Stats": "https://fbref.com/en/comps/10/stats/Championship-Stats",
+    "Goalkeeping": "https://fbref.com/en/comps/10/keepers/Championship-Stats",
+    "Advanced_Goalkeeping": "https://fbref.com/en/comps/10/keepersadv/Championship-Stats",
+    "Shooting": "https://fbref.com/en/comps/10/shooting/Championship-Stats",
+    "Passing": "https://fbref.com/en/comps/10/passing/Championship-Stats",
+    "Pass_Types": "https://fbref.com/en/comps/10/passing_types/Championship-Stats",
+    "Goal_Shot_Creation": "https://fbref.com/en/comps/10/gca/Championship-Stats",
+    "Defensive_Actions": "https://fbref.com/en/comps/10/defense/Championship-Stats",
+    "Possession": "https://fbref.com/en/comps/10/possession/Championship-Stats",
+    "Playing_Time": "https://fbref.com/en/comps/10/playingtime/Championship-Stats",
+    "Miscellaneous_Stats": "https://fbref.com/en/comps/10/misc/Championship-Stats",
+    "Liverpool": "https://fbref.com/en/squads/822bd0ba/Liverpool-Stats"
+}
+
+tables_names = [
+    'Standard_Stats',
+    'Scores_Fixtures',
+    'Goalkeeping',
+    'Advanced_Goalkeeping',
+    'Shooting',
+    'Passing',
+    'Pass_Types',
+    'Goal_Shot_Creation',
+    'Defensive_Actions',
+    'Possession',
+    'Playing_Time',
+    'Miscellaneous_Stats'
+]
+
+# delte existance tables
+with engine.begin() as conn:
+    for tbl in tables_names:
+        table_name=f'stg_{tbl}'
+        conn.execute(text(f'DROP TABLE IF EXISTS "puplic"."{table_name}";'))
+    print("Dropped all staging tables.")
+
+# scrap data
+for name ,url in urls.items:
+    if name=='Liverpool':
+        tables=scrape_tables(url,club=name,slepp_time=10)
+        if tables:
+            print('-'*30)
+            print(len(tables),end=' ')
+            print('tables_found')
+            for i,table in enumerate(tables[0:12]):
+                # get the table name
+                print(i)
+                table_name=f"stg_{tables_names[i]}"
+                #  flatten the table if it is a DataFrame
+                if isinstance(table.columns,pd.MultiIndex):
+                    table.columns=['_'.join([str(i) for i in col]) for col in table.columns]
+                table.to_sql(table_name,engine,schema='puplic',if_exists='replace',index=False)
+                print('-'*30)
+                print(f"Table {i+1} ({table_name}) inserted successfully.")
+    else:
+        table_name=f"stg_{name}"
+        table=scrape_tables(url=url,club=name,xpath=championship_xpath)
+        print('-'*30)
+        # check if the table is empty
+        if table is None or not hasattr(table,'empty'):
+            print(f"❌ No tables found for {name}")
+            continue
+        print(f"Found the table for the Championship's players \"{name}\" data")
+
+        # flatten the table if it is a DataFrame
+        if isinstance(table.columns,pd.MultiIndex):
+            table.columns=['_'.join([str(i) for i in col]) for col in table.columns]
+        
+        # Store the table in the database
+        table.to_sql(table_name, engine, schema="public", if_exists='replace', index=False)
+
+        print(f"✅ Loaded Championship's players \"{name}\" data into \"{table_name}\"")
+# Finish the scraping process
+print("-" * 20)
+print("🏁 Data exploration and loading completed.")
+
+
+
