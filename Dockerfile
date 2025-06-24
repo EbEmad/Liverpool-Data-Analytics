@@ -24,6 +24,5 @@ RUN pip install --upgrade webdriver-manager selenium
 
 # Copy application code
 COPY src/ ./src
-COPY test.py test.py
 
-CMD ["python", "src/scrap.py"]
+CMD ["bash", "src/run.sh"]

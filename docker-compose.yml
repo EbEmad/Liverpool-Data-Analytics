@@ -21,6 +21,45 @@ services:
     
     networks:
       - scraping
+  airflow:
+    image: apache/airflow:3.0.1
+    container_name: airflow
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_SCHEMA}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW_UID=50000
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./src:/opt/airflow/scripts
+      - ./airflow/config:/opt/airflow/config
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/.env:/opt/airflow/.env
+      - ./airflow/plugins:/opt/airflow/plugins
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create --username airflow --password airflow --firstname Liverpool --lastname FC --role Admin --email admin@Liverpool.com &&
+        airflow webserver &
+        airflow scheduler
+      "
+  airflow_scheduler:
+    image: apache/airflow:3.0.1
+    container_name: airflow_scheduler
+    depends_on:
+      - airflow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    command: airflow scheduler
+
+
 
 networks:
   scraping:

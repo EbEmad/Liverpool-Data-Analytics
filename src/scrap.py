@@ -5,6 +5,7 @@ import os
 import sys
 from pathlib import Path
 import pandas as pd
+from scraping.clean_data import flatten_columns, clean_table, insert_squad_column
 
 # Create database engine
 engine = create_engine(f"postgresql://user:root@postgres:5432/test_db")
@@ -61,19 +62,20 @@ for name,url in urls.items():
             print(len(tables),end=' ')
             print('tables_found')
             for i,table in enumerate(tables[0:12]):
-                # get the table name
-                print(i)
-                table_name = f"stg_{tables_names[i]}"
                 # flatten the table if it is a DataFrame
-                if isinstance(table.columns, pd.MultiIndex):
-                    table.columns=['_'.join([str(i) for i in col]) for col in table.columns]
-                table.to_sql(table_name, engine, schema="public", if_exists='replace', index=False)
-
+                table=flatten_columns(table)
+                table=clean_table(club=name,table=table)
+                # Insert the squad column for
+                table = insert_squad_column(table, squad_name="Liverpool")
+                # get the table name
+                table_name = f"stg_{tables_names[i]}"
+                # Store the table in the database
+                table.to_sql(table_name, engine, schema="public", if_exists='append', index=False)
                 print("-"*20)
                 print(f"Table {i+1} ({table_name}) inserted successfully.")
 
     else:
-        table_name=f"stg_{name}"
+      
         table = scrape_tables(url=url, club=name, xpath=championship_xpath)
         # Check if the table is empty
         if  table is None or not hasattr(table, "empty") or table.empty:
@@ -83,11 +85,11 @@ for name,url in urls.items():
 
         print("-" * 20)
         print(f"Found the table for the Championship's players \"{name}\" data")
-
         # flatten the table if it is a DataFrame
-        if isinstance(table.columns,pd.MultiIndex):
-            table.columns = ['_'.join([str(i) for i in col]) for col in table.columns]
-
+        table=flatten_columns(table)
+        table=clean_table(club=name,table=table)
+        # Get the table name
+        table_name = f"stg_{name}"
         # Store the table in the database
         table.to_sql(table_name, engine, schema="public", if_exists='replace', index=False)
 
