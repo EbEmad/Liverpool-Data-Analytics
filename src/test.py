@@ -14,6 +14,3 @@ query='select * from "public.stg_Shooting"'
 df=pd.read_sql_query(query,conn)
 conn.close()
 df.to_csv('test.csv',index=False)
-
-while True:
-    pass

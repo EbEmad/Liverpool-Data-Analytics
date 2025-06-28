@@ -8,7 +8,7 @@ import pandas as pd
 from scraping.clean_data import flatten_columns, clean_table, insert_squad_column
 
 # Create database engine
-engine = create_engine(f"postgresql://user:root@postgres:5432/test_db")
+engine = create_engine("postgresql+psycopg2://user:root@db:5432/test_db")
 
 
 # Define the XPATH for the Championship table
