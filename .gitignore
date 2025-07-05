@@ -192,6 +192,12 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Ignore the try directory
 try/
+
+# Ignore the Data directory
 Data/
-upload.ipynb_checkpoints
+
+# Ignore Jupyter checkpoints
+**/.ipynb_checkpoints/
