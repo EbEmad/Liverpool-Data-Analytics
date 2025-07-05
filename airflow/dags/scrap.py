@@ -1,19 +1,24 @@
+from airflow import DAG
 from airflow.operators.bash import BashOperator
 from datetime import datetime
-from airflow import DAG
 
-default_args={
-    'owner':'Liverpool',
-    'start_date': datetime(2025,6,28),
-    'retries':1
+default_args = {
+    'owner': 'brentford',
+    'start_date': datetime(2025, 7, 5),
+    'retries': 1,
 }
+
 with DAG(
-    dag_id='scrape_to_postgres_dagv2',
+    dag_id='scrape_data',
     default_args=default_args,
-    schedule='@daily',
-    catchup=False
+    schedule_interval='@daily',
+    catchup=False,
+    tags=['Liverpool', 'bronze'],
 ) as dag:
-    scrape_and_load=BashOperator(
+
+    scrape_and_load = BashOperator(
         task_id='scrape_and_load',
-        bash_command='python /opt/airflow/scripts/scrap.py'
+        bash_command='python /opt/airflow/scripts/scrap.py',
     )
+
+    scrape_and_load

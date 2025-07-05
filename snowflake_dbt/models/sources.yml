@@ -1,0 +1,9 @@
+version: 2
+sources:
+  - name: Bronze_data
+    database: DWH
+    schema: Bronze
+    tbales:
+      - name: stg_advanced_goalkeeping
+      - name: stg_defensive_actions
+      - name: stg_goal_shot_creation

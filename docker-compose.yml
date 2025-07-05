@@ -29,9 +29,11 @@ services:
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
+      - ./dlt_pipline:/opt/airflow/etl_pipeline
       - ./airflow/config:/opt/airflow/config
       - ./airflow/plugins:/opt/airflow/plugins
       - ./src:/opt/airflow/scripts
+      - ./dlt_pipline/.dbt:/opt/airflow/.dbt
     ports:
       - "8080:8080"
     entrypoint: /run.sh
@@ -52,6 +54,7 @@ services:
       - ./airflow/config:/opt/airflow/config
       - ./airflow/plugins:/opt/airflow/plugins
       - ./src:/opt/airflow/scripts
+      - ./dlt_pipline:/opt/airflow/etl_pipeline
     entrypoint: /run.sh
     command: scheduler
     networks:

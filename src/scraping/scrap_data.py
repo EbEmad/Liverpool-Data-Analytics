@@ -14,14 +14,14 @@ def scrape_tables(url,club,xpath='',sleep_time=10):
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument('--disable-gpu')
-    options.add_argument('--disable-software-rasterizer')
-    options.add_argument('--disable-features=VizDisplayCompositor')
-    options.add_argument('--remote-debugging-port=9222')
+    #options.add_argument('--disable-gpu')
+    # options.add_argument('--disable-software-rasterizer')
+    # options.add_argument('--disable-features=VizDisplayCompositor')
+    # options.add_argument('--remote-debugging-port=9222')
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.set_page_load_timeout(10)  # instead of default 120s
+    #driver.set_page_load_timeout(35) 
     driver.get(url)
-    time.sleep(sleep_time)  # Wait for the page to load
+    #time.sleep(sleep_time)  # Wait for the page to load
 
     try:
         if club=='Liverpool':
