@@ -201,3 +201,6 @@ Data/
 
 # Ignore Jupyter checkpoints
 **/.ipynb_checkpoints/
+
+# Ignore .ipynb files in the root directory
+*.ipynb
