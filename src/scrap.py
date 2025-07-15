@@ -8,7 +8,7 @@ import pandas as pd
 from scraping.clean_data import flatten_columns, clean_table, insert_squad_column
 
 # Create database engine
-engine = create_engine("postgresql+psycopg2://user:root@db:5432/test_db")
+engine = create_engine("postgresql+psycopg2://user:root@localhost:5433/test_db")
 
 
 # Define the XPATH for the Championship table
@@ -68,7 +68,7 @@ for name,url in urls.items():
                 # Insert the squad column for
                 table = insert_squad_column(table, squad_name="Liverpool")
                 # get the table name
-                table_name = f"stg_{tables_names[i]}"
+                table_name = f"stg_'Liverpool_'{tables_names[i]}"
                 # Store the table in the database
                 table.to_sql(table_name, engine, schema="public", if_exists='append', index=False)
                 print("-"*20)

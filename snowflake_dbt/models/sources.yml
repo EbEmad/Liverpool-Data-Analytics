@@ -3,7 +3,15 @@ sources:
   - name: Bronze_data
     database: DWH
     schema: Bronze
-    tbales:
-      - name: stg_advanced_goalkeeping
+    tables:
+      - name: stg_playing_time
+      - name: stg_scores_fixtures
+      - name: stg_goalkeeping
       - name: stg_defensive_actions
+      - name: stg_pass_types
+      - name: stg_advanced_goalkeeping
+      - name: stg_miscellaneous_stats
+      - name: stg_standard_stats
       - name: stg_goal_shot_creation
+      - name: stg_possession
+      - name: stg_passing
